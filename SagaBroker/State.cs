@@ -2,7 +2,7 @@
 
 namespace SagaBroker
 {
-	public class Class1
+	public class State
 	{
 	}
 }
