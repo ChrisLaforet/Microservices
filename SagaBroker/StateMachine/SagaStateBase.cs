@@ -7,7 +7,7 @@ namespace SagaBroker.StateMachine
 {
 	public abstract class SagaStateBase
 	{
-		private IDictionary<String, TransitionState> transitionStates = new Dictionary<String, TransitionState>();
+		private readonly IDictionary<String, TransitionState> transitionStates = new Dictionary<String, TransitionState>();
 
 		public BrokerState BrokerState { get;  }
 		public string CommandQueueName { get; }
