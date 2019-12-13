@@ -6,7 +6,7 @@ namespace SagaBroker.QueueManagement
 {
 	public interface IQueueManager
 	{
-		String SendMessage(String QueueName, IQueueMessage Message);
-		IQueueMessage ReceiveMessage(String QueueName);
+		string SendMessage(string QueueName, IQueueMessage Message);
+		IQueueMessage ReceiveMessage(string QueueName);
 	}
 }

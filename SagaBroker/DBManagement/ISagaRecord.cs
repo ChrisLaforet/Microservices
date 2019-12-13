@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SagaBroker
+namespace SagaBroker.DBManagement
 {
-	public class BrokerState
+	public interface ISagaRecord
 	{
 	}
 }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SagaBroker.StateMachine
 {
-	public abstract class SagaStateBase
+	public abstract class SagaState
 	{
 		private readonly IDictionary<String, TransitionState> transitionStates = new Dictionary<String, TransitionState>();
 

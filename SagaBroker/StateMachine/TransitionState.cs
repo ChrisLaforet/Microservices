@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SagaBroker
+namespace SagaBroker.StateMachine
 {
 	public class TransitionState
 	{
-		public String Name { private set; get; }
+		public string Name { private set; get; }
 	}
 }
