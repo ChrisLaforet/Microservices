@@ -6,5 +6,6 @@ namespace SagaBroker
 {
 	public class TransitionState
 	{
+		public String Name { private set; get; }
 	}
 }
