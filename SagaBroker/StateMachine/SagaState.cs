@@ -10,8 +10,7 @@ namespace SagaBroker.StateMachine
 		private readonly IDictionary<String, TransitionState> transitionStates = new Dictionary<String, TransitionState>();
 
 		public BrokerState BrokerState { get;  }
-		public string CommandQueueName { get; }
-		public string ResponseQueueName { get; }
+		public string ProxyName { get; }
 
 		public IList<TransitionState> Transitions
 		{
