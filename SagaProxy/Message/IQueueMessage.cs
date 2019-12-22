@@ -6,5 +6,8 @@ namespace SagaProxy.Message
 {
 	public interface IQueueMessage
 	{
+		string ID { get; set; }
+		string CorrelationID { get; set; }
+		string Content { get; set; }
 	}
 }
