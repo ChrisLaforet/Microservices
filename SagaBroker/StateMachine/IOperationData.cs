@@ -4,8 +4,8 @@ using System.Text;
 
 namespace SagaBroker.StateMachine
 {
-	public class TransitionState
+	public interface IOperationData
 	{
-		public string Name { private set; get; }
+		string SagaRecordGUID { get; set; }
 	}
 }

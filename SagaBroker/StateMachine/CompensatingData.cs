@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SagaBroker.DBManagement
+namespace SagaBroker.StateMachine
 {
-	public interface ISagaRecord
+	public abstract class CompensatingData
 	{
 	}
 }

@@ -6,17 +6,17 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SagaActiveMQ.QueueManagement
+namespace SagaActiveMQ.Queue
 {
-	public class ActiveMQManager : IQueueManager
+	public class ActiveMQDriver : IQueueDriver
 	{
 		public const int DEFAULT_ACTIVEMQ_PORT = 61666;
-		public const int DEFAULT_24HR_MESSAGE_TIMEOUTMS = 24 * 60 * 60 * 1000;
+		public const int DEFAULT_1_MINUTE_MESSAGE_TIMEOUTMS = 1 * 60 * 1000;
 
 		private readonly IConnectionFactory activeMQfactory;
 		private readonly int defaultMessageTimeoutMS;
 
-		public ActiveMQManager(string server, int port = DEFAULT_ACTIVEMQ_PORT, int defaultMessageTimeoutMS = DEFAULT_24HR_MESSAGE_TIMEOUTMS)
+		public ActiveMQDriver(string server, int port = DEFAULT_ACTIVEMQ_PORT, int defaultMessageTimeoutMS = DEFAULT_1_MINUTE_MESSAGE_TIMEOUTMS)
 		{
 			Uri connecturi = new Uri("activemq:tcp://" + server + ":" + port);
 			activeMQfactory = new NMSConnectionFactory(connecturi);
@@ -38,7 +38,7 @@ namespace SagaActiveMQ.QueueManagement
 						if (message == null)
 							return null;
 
-						return new ActiveMQMessage(message.NMSMessageId, message.NMSCorrelationID, message.Text);
+						return new ActiveMQMessage(null, queueName, message.Text, message.NMSMessageId, message.NMSCorrelationID);
 					}
 				}
 			}
@@ -49,34 +49,29 @@ namespace SagaActiveMQ.QueueManagement
 			throw new NotImplementedException();
 		}
 
-		public string SendMessage(string queueName, IQueueMessage message)
+		public IQueueMessage SendMessage(IQueueMessage message)
 		{
 			using (IConnection connection = activeMQfactory.CreateConnection())
 			{
 				using (ISession session = connection.CreateSession())
 				{
-					IDestination destination = session.GetQueue(queueName);
+					IDestination destination = session.GetQueue(message.RequestQueueName);
 					using (IMessageProducer producer = session.CreateProducer(destination))
 					{
 						connection.Start();
 						producer.DeliveryMode = MsgDeliveryMode.Persistent;
 						producer.RequestTimeout = new TimeSpan(0, 0, 0, defaultMessageTimeoutMS);
 
-						string correlationID = GenerateCorrelationID();
 						ITextMessage request = session.CreateTextMessage(message.Content);
-						request.NMSCorrelationID = correlationID;
+						request.NMSCorrelationID = message.CorrelationID;
+						request.NMSMessageId = message.ID;
 
 						producer.Send(request);
 
-						return correlationID;
+						return message;
 					}
 				}
 			}
-		}
-
-		private string GenerateCorrelationID()
-		{
-			return Guid.NewGuid().ToString();
 		}
 	}
 }
