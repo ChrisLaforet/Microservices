@@ -11,17 +11,17 @@ namespace SagaBroker.Saga
 	{
 		private readonly IDictionary<string, SagaStage> transitionStates = new Dictionary<string, SagaStage>();
 		private bool isClosed = false;
+		internal readonly SagaRemoteDriver remoteDriver;
 
 		public SagaOrchestrator(string orchestratorName, IQueueDriver queueDriver, IDBDriver dbDriver)
 		{
 			Name = orchestratorName.ToUpper();
-			QueueDriver = queueDriver;
 			DBDriver = dbDriver;
+			remoteDriver = new SagaRemoteDriver(queueDriver);
 		}
 
 		public string Name { protected set; get; }
 
-		internal IQueueDriver QueueDriver { private set; get; }
 		internal IDBDriver DBDriver { private set; get; }
 
 		internal ISagaStage FirstStage { set; get; }

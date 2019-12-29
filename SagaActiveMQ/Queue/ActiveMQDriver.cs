@@ -23,13 +23,13 @@ namespace SagaActiveMQ.Queue
 			this.defaultMessageTimeoutMS = defaultMessageTimeoutMS;
 		}
 
-		public IQueueMessage ReceiveMessage(string queueName)
+		public IQueueMessage ReceiveMessage(IQueueMessage sentMessage)
 		{
 			using (IConnection connection = activeMQfactory.CreateConnection())
 			{
 				using (ISession session = connection.CreateSession())
 				{
-					IDestination destination = session.GetQueue(queueName);
+					IDestination destination = session.GetQueue(sentMessage.ReplyQueueName);
 					using (IMessageConsumer consumer = session.CreateConsumer(destination))
 					{
 						connection.Start();
@@ -38,7 +38,7 @@ namespace SagaActiveMQ.Queue
 						if (message == null)
 							return null;
 
-						return new ActiveMQMessage(null, queueName, message.Text, message.NMSMessageId, message.NMSCorrelationID);
+						return new ActiveMQMessage(sentMessage.RequestQueueName, sentMessage.ReplyQueueName, message.Text, message.NMSMessageId, message.NMSCorrelationID);
 					}
 				}
 			}
