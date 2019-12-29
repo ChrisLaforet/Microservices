@@ -44,7 +44,7 @@ namespace SagaActiveMQ.Queue
 			}
 		}
 
-		public Task<IQueueMessage> ReceiveMessageAsync(string queueName)
+		public Task<IQueueMessage> ReceiveMessageAsync(IQueueMessage sentMessage)
 		{
 			throw new NotImplementedException();
 		}

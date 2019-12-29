@@ -1,5 +1,6 @@
 ﻿using SagaBroker.Saga;
 using SagaBroker.StateMachine;
+using SagaProxy.QueueManagement;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,6 +19,11 @@ namespace SagaBroker.Broker
 		public ISagaOperation CompensatingTransaction { private set; get; }
 
 		public abstract BrokerData ExecuteTransaction(IOperationData operationData);
-		public abstract BrokerData ExecuteCompensatingTransaction(IOperationData operationData);
+		public abstract BrokerData ExecuteCompensatingTransaction(CompensatingData compensatingData);
+
+		public BrokerData ProcessResponse(BrokerData brokerData, IResponseData responseData)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }
