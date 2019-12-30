@@ -78,8 +78,6 @@ namespace SagaBroker.Saga
 
 			return null;
 		}
-
-
 	}
 
 	class RequestResponse
