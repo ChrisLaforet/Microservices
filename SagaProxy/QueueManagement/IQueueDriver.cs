@@ -9,7 +9,8 @@ namespace SagaProxy.QueueManagement
 	public interface IQueueDriver
 	{
 		string SendMessage(IQueueMessage message);
-		IResponseData ReceiveMessage(IQueueMessage message);
-		Task<IResponseData> ReceiveMessageAsync(IQueueMessage message);
+		IQueueMessage ReceiveMessage(IQueueMessage message);
+		IQueueMessage ReceiveMessage(string queueName);
+//		Task<IResponseData> ReceiveMessageAsync(IQueueMessage message);
 	}
 }

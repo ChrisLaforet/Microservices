@@ -20,10 +20,5 @@ namespace SagaBroker.Broker
 
 		public abstract BrokerData ExecuteTransaction(IOperationData operationData);
 		public abstract BrokerData ExecuteCompensatingTransaction(CompensatingData compensatingData);
-
-		public BrokerData ProcessResponse(BrokerData brokerData, IResponseData responseData)
-		{
-			throw new NotImplementedException();
-		}
 	}
 }

@@ -25,11 +25,19 @@ namespace SagaActiveMQ.Queue
 
 		public IQueueMessage ReceiveMessage(IQueueMessage sentMessage)
 		{
+			IQueueMessage response = ReceiveMessage(sentMessage.ReplyQueueName);
+			if (response != null)
+				response.RequestQueueName = sentMessage.RequestQueueName;
+			return response;
+		}
+
+		public IQueueMessage ReceiveMessage(string queueName)
+		{
 			using (IConnection connection = activeMQfactory.CreateConnection())
 			{
 				using (ISession session = connection.CreateSession())
 				{
-					IDestination destination = session.GetQueue(sentMessage.ReplyQueueName);
+					IDestination destination = session.GetQueue(queueName);
 					using (IMessageConsumer consumer = session.CreateConsumer(destination))
 					{
 						connection.Start();
@@ -38,15 +46,10 @@ namespace SagaActiveMQ.Queue
 						if (message == null)
 							return null;
 
-						return new ActiveMQMessage(sentMessage.RequestQueueName, sentMessage.ReplyQueueName, message.Text, message.NMSMessageId, message.NMSCorrelationID);
+						return new ActiveMQMessage(null, queueName, message.Text, message.NMSMessageId, message.NMSCorrelationID);
 					}
 				}
 			}
-		}
-
-		public Task<IQueueMessage> ReceiveMessageAsync(IQueueMessage sentMessage)
-		{
-			throw new NotImplementedException();
 		}
 
 		public IQueueMessage SendMessage(IQueueMessage message)

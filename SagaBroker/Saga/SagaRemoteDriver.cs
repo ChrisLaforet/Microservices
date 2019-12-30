@@ -1,8 +1,9 @@
-﻿using SagaProxy.Message;
+﻿using SagaBroker.Exception;
+using SagaProxy.Message;
 using SagaProxy.QueueManagement;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace SagaBroker.Saga
@@ -10,7 +11,7 @@ namespace SagaBroker.Saga
 	internal class SagaRemoteDriver
 	{
 		private readonly IQueueDriver queueDriver;
-		private readonly IDictionary<string, RequestResponse> pending = new Dictionary<string, RequestResponse>();
+		private readonly IDictionary<string, RequestResponse> pending = new ConcurrentDictionary<string, RequestResponse>();
 
 		private readonly Thread monitorDriver;
 
@@ -24,18 +25,60 @@ namespace SagaBroker.Saga
 
 		private void ResponseMonitor()
 		{
+			while (true)
+			{
+				bool mustSleep = true;
 
+				IList<string> responseQueues = new List<string>();
+				foreach (var node in pending)
+				{
+					if (node.Value.HasResponse)
+						continue;
+
+					if (!responseQueues.Contains(node.Value.Request.ReplyQueueName))
+						responseQueues.Add(node.Value.Request.ReplyQueueName);
+				}
+
+				foreach (var queue in responseQueues)
+				{
+					IQueueMessage response = queueDriver.ReceiveMessage(queue);
+					if (response != null)
+					{
+						var node = pending[response.CorrelationID];
+						if (node != null)
+							node.Response = response;
+						mustSleep = false;
+					}
+				}
+
+				if (mustSleep)
+					Thread.Sleep(500 * 1000);
+			}
 		}
 
-		public void SendMessage(IQueueMessage message)
+		public string SendMessage(IQueueMessage message)
 		{
 			string correlationID = queueDriver.SendMessage(message);
-			lock (pending)
+			pending.TryAdd(correlationID, new RequestResponse(message));
+			return correlationID;
+		}
+
+		public IQueueMessage ReceiveResponse(string correlationID)
+		{
+			RequestResponse node = pending[correlationID];
+			if (node == null)
+				throw new QueueReadException("Unable to find a node for correlation ID " + correlationID);
+
+			if (node.HasResponse)
 			{
-				pending.Add(correlationID, new RequestResponse(message));
+				IQueueMessage response = node.Response;
+				pending.Remove(correlationID);
+				return response;
 			}
 
+			return null;
 		}
+
 
 	}
 
