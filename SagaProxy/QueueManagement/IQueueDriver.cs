@@ -11,6 +11,5 @@ namespace SagaProxy.QueueManagement
 		string SendMessage(IQueueMessage message);
 		IQueueMessage ReceiveMessage(IQueueMessage message);
 		IQueueMessage ReceiveMessage(string queueName);
-//		Task<IResponseData> ReceiveMessageAsync(IQueueMessage message);
 	}
 }

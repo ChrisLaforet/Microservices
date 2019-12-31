@@ -15,6 +15,8 @@ namespace SagaBroker.Saga
 
 		private readonly Thread monitorDriver;
 
+		private const int SLEEP_MSEC = 500 * 1000;
+
 		internal SagaRemoteDriver(IQueueDriver driver)
 		{
 			queueDriver = driver;
@@ -52,14 +54,27 @@ namespace SagaBroker.Saga
 				}
 
 				if (mustSleep)
-					Thread.Sleep(500 * 1000);
+				{
+					ExpireOldMessages();
+					Thread.Sleep(SLEEP_MSEC);
+				}
 			}
 		}
 
-		public string SendMessage(IQueueMessage message)
+		private void ExpireOldMessages()
+		{
+			DateTime now = DateTime.Now;
+			foreach (var node in pending)
+			{
+				if (node.Value.ExpirationTimestamp.CompareTo(now) < 0)
+					pending.Remove(node.Key);
+			}
+		}
+
+		public string SendMessage(IQueueMessage message, int expirationMsec)
 		{
 			string correlationID = queueDriver.SendMessage(message);
-			pending.TryAdd(correlationID, new RequestResponse(message));
+			pending.TryAdd(correlationID, new RequestResponse(message, expirationMsec));
 			return correlationID;
 		}
 
@@ -82,12 +97,16 @@ namespace SagaBroker.Saga
 
 	class RequestResponse
 	{
-		public RequestResponse(IQueueMessage request)
+		public RequestResponse(IQueueMessage request, int expirationMsec)
 		{
 			Request = request;
+			StartTimestamp = DateTime.Now;
+			ExpirationTimestamp = StartTimestamp.AddMilliseconds(expirationMsec);
 		}
 
-		public readonly DateTime Timestamp = DateTime.Now;
+		public readonly DateTime StartTimestamp;
+		public readonly DateTime ExpirationTimestamp;
+
 		public IQueueMessage Request { private set; get; }
 		public IQueueMessage Response { set; get; }
 

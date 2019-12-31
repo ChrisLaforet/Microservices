@@ -2,9 +2,6 @@
 using SagaProxy.Message;
 using SagaProxy.QueueManagement;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SagaActiveMQ.Queue
 {
@@ -52,7 +49,7 @@ namespace SagaActiveMQ.Queue
 			}
 		}
 
-		public IQueueMessage SendMessage(IQueueMessage message)
+		public string SendMessage(IQueueMessage message)
 		{
 			using (IConnection connection = activeMQfactory.CreateConnection())
 			{
@@ -71,7 +68,7 @@ namespace SagaActiveMQ.Queue
 
 						producer.Send(request);
 
-						return message;
+						return message.CorrelationID;
 					}
 				}
 			}
