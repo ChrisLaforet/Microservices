@@ -6,8 +6,8 @@ namespace SagaBroker.StateMachine
 {
 	public interface IStateNode
 	{
-		ISagaOperation Transaction { get; }
-		ISagaOperation CompensatingTransaction { get; }
+		SagaOperation Transaction { get; }
+		SagaOperation CompensatingTransaction { get; }
 
 		BrokerData ExecuteTransaction(IOperationData operationData);
 		BrokerData ExecuteCompensatingTransaction(CompensatingData compensatingData);

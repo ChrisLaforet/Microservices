@@ -28,7 +28,7 @@ namespace SagaBroker.Saga
 			return Guid.NewGuid().ToString();
 		}
 
-		public BrokerData.StepState ExecuteTransaction(ISagaOperation operationData)
+		public BrokerData.StepState ExecuteTransaction(SagaOperation operationData)
 		{
 			ISagaRecord sagaRecord = new StateMachineSagaRecord()
 			{
