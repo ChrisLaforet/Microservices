@@ -12,7 +12,7 @@ namespace SagaBroker.Saga
 {
 	public class SagaStateMachine
 	{
-		private readonly Stack<IStateNode> rewindStack = new Stack<IStateNode>();
+		private readonly Stack<CompensatingData> rewindStack = new Stack<CompensatingData>();
 
 		internal SagaStateMachine(SagaOrchestrator orchestrator)
 		{
