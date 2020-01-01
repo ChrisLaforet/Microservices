@@ -15,13 +15,14 @@ namespace SagaBroker.Saga
 		public SagaOrchestrator(string orchestratorName, IQueueDriver queueDriver, IDBDriver dbDriver)
 		{
 			Name = orchestratorName.ToUpper();
-			QueueDriver = queueDriver;
 			DBDriver = dbDriver;
+			RemoteQueueDriver = new SagaRemoteDriver(queueDriver);
 		}
 
 		public string Name { protected set; get; }
 
-		internal IQueueDriver QueueDriver { private set; get; }
+		internal SagaRemoteDriver RemoteQueueDriver { private set; get; }
+
 		internal IDBDriver DBDriver { private set; get; }
 
 		internal ISagaStage FirstStage { set; get; }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 
 namespace SagaBroker.Exception
 {
@@ -9,6 +6,6 @@ namespace SagaBroker.Exception
 	{
 		public QueueSendException(string message) : base(message) { }
 
-		public QueueSendException(string message, Exception innerException) : base(message, innerException) { }
+		public QueueSendException(string message, System.Exception innerException) : base(message, innerException) { }
 	}
 }

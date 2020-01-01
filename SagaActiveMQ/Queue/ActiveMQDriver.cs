@@ -2,9 +2,6 @@
 using SagaProxy.Message;
 using SagaProxy.QueueManagement;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SagaActiveMQ.Queue
 {
@@ -21,6 +18,14 @@ namespace SagaActiveMQ.Queue
 			Uri connecturi = new Uri("activemq:tcp://" + server + ":" + port);
 			activeMQfactory = new NMSConnectionFactory(connecturi);
 			this.defaultMessageTimeoutMS = defaultMessageTimeoutMS;
+		}
+
+		public IQueueMessage ReceiveMessage(IQueueMessage sentMessage)
+		{
+			IQueueMessage response = ReceiveMessage(sentMessage.ReplyQueueName);
+			if (response != null)
+				response.RequestQueueName = sentMessage.RequestQueueName;
+			return response;
 		}
 
 		public IQueueMessage ReceiveMessage(string queueName)
@@ -44,12 +49,7 @@ namespace SagaActiveMQ.Queue
 			}
 		}
 
-		public Task<IQueueMessage> ReceiveMessageAsync(string queueName)
-		{
-			throw new NotImplementedException();
-		}
-
-		public IQueueMessage SendMessage(IQueueMessage message)
+		public string SendMessage(IQueueMessage message)
 		{
 			using (IConnection connection = activeMQfactory.CreateConnection())
 			{
@@ -68,7 +68,7 @@ namespace SagaActiveMQ.Queue
 
 						producer.Send(request);
 
-						return message;
+						return message.CorrelationID;
 					}
 				}
 			}

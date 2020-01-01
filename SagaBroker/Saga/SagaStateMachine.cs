@@ -28,7 +28,7 @@ namespace SagaBroker.Saga
 			return Guid.NewGuid().ToString();
 		}
 
-		public BrokerData.StepState ExecuteTransaction(IOperationData operationData)
+		public BrokerData.StepState ExecuteTransaction(SagaOperation operationData)
 		{
 			ISagaRecord sagaRecord = new StateMachineSagaRecord()
 			{
@@ -58,9 +58,9 @@ namespace SagaBroker.Saga
 					{
 						transData.SagaQueueMessage.CorrelationID = sagaRecord.GUID;
 						transData.SagaQueueMessage.ID = transData.SagaQueueMessage?.ID ?? GenerateGUID();
-						orchestrator.QueueDriver.SendMessage(transData.SagaQueueMessage);
+						orchestrator.RemoteQueueDriver.SendMessage(transData.SagaQueueMessage, operationData.ExpirationMsec);
 
-						response = orchestrator.QueueDriver.ReceiveMessage(transData.SagaQueueMessage);
+						response = orchestrator.RemoteQueueDriver.ReceiveMessage(transData.SagaQueueMessage);
 					}
 
 					var responseData = currentStage.StateNode.ProcessResponse(transData, response);
