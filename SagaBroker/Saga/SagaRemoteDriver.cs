@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace SagaBroker.Saga
 {
-	internal class SagaRemoteDriver
+	public class SagaRemoteDriver
 	{
 		private readonly IQueueDriver queueDriver;
 		private readonly IDictionary<string, RequestResponse> pending = new ConcurrentDictionary<string, RequestResponse>();

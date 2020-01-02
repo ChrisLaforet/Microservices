@@ -5,12 +5,21 @@ using System.Text;
 
 namespace SagaBroker.StateMachine
 {
+	public enum StepState
+	{
+		STEP_SUCCESS,
+		STEP_FAILURE,
+		STEP_EXIT
+	}
+
+	public delegate StepState SagaOperation(SagaRemoteDriver sageRemoteDriver);
+
 	public interface ISagaStage
 	{
+		int ExpirationMsec { get; }
 		string Name { get; }
 
-		IStateNode StateNode { get; }
-
-		ISagaStage GetTransitionByName(string name);
+		SagaOperation Operation { get; }
+		SagaOperation RewindOperation { get; }
 	}
 }

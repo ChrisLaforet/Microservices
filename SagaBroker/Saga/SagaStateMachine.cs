@@ -2,8 +2,6 @@
 using SagaBroker.Exception;
 using SagaBroker.StateMachine;
 using SagaProxy.DBManagement;
-using SagaProxy.Message;
-using SagaProxy.QueueManagement;
 using System;
 using System.Collections.Generic;
 using System.Transactions;
