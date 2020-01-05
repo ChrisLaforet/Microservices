@@ -1,7 +1,6 @@
-﻿using SagaBroker.Saga;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using SagaBroker.Orchestration;
+using SagaBroker.Saga;
+
 
 namespace SagaBroker.StateMachine
 {
@@ -13,14 +12,13 @@ namespace SagaBroker.StateMachine
 		STEP_NODELEGATE
 	}
 
-	public delegate StepState SagaOperation(SagaRemoteDriver sagaRemoteDriver,IOperationData operationData);
+	public delegate StepState SagaOperation(ISagaRemoteDriver sagaRemoteDriver,IOperationData operationData);
 
 	public interface ISagaStage
 	{
-		int ExpirationMsec { get; }
 		string Name { get; }
 
-		SagaOperation Operation { get; }
-		SagaOperation RewindOperation { get; }
+		string ExecuteTransaction(ISagaRemoteDriver sagaRemoteDriver,IOperationData operationData);
+		StepState ExecuteCompensatingTransaction(ISagaRemoteDriver sagaRemoteDriver,IOperationData operationData);
 	}
 }

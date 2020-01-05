@@ -46,17 +46,19 @@ namespace SagaSQLServer.DB
 			{
 				SqlCommand cmd = new SqlCommand();
 				cmd.CommandType = System.Data.CommandType.Text;
-				cmd.CommandText = "INSERT INTO " + tableName + " (guid, orchestratorName, stageName, creationTimestamp, stageComplete, stageSuccess) " +
-					"VALUES (@GUID, @OrchestratorName, @StageName, @CreationTimestamp, 0, 0)";
+				cmd.CommandText = "INSERT INTO " + tableName + " (guid, orchestratorName, stageName, creationTimestamp, stageComplete, stageSuccess, stageRewinding) " +
+					"VALUES (@GUID, @OrchestratorName, @StageName, @CreationTimestamp, 0, 0, @StageRewinding)";
 				cmd.Parameters.Add("@GUID", System.Data.SqlDbType.VarChar);
 				cmd.Parameters.Add("@OrchestratorName", System.Data.SqlDbType.VarChar);
 				cmd.Parameters.Add("@StageName", System.Data.SqlDbType.VarChar);
 				cmd.Parameters.Add("@CreationTimestamp", System.Data.SqlDbType.DateTime2);
+				cmd.Parameters.Add("@StageRewinding", System.Data.SqlDbType.Bit);
 
 				cmd.Parameters["@GUID"].Value = record.GUID;
 				cmd.Parameters["@OrchestratorName"].Value = record.OrchestratorName;
 				cmd.Parameters["@StageName"].Value = record.StageName;
 				cmd.Parameters["@CreationTimestamp"].Value = record.CreationTimestamp;
+				cmd.Parameters["@StageRewinding"].Value = record.StageRewinding ? 1 : 0;
 
 				conn.Open();
 				cmd.ExecuteNonQuery();
@@ -68,7 +70,7 @@ namespace SagaSQLServer.DB
 			using (SqlConnection conn = CreateConnection())
 			{
 				SqlCommand cmd = new SqlCommand("SELECT " +
-					"guid, orchestratorName, stageName, creationTimestamp, completionTimestamp, stageComplete, stageSuccess FROM " + 
+					"guid, orchestratorName, stageName, creationTimestamp, completionTimestamp, stageComplete, stageSuccess, stageRewinding FROM " + 
 					tableName + " WHERE guid = @GUID AND orchestratorName = @OrchestratorName", conn);
 				cmd.Parameters.Add("@GUID", System.Data.SqlDbType.VarChar);
 				cmd.Parameters.Add("@OrchestratorName", System.Data.SqlDbType.VarChar);
@@ -91,7 +93,8 @@ namespace SagaSQLServer.DB
 							CreationTimestamp = reader.GetDateTime(3),
 							CompletionTimestamp = (reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4)),
 							StageComplete = reader.GetBoolean(5),
-							StageSuccess = reader.GetBoolean(6)
+							StageSuccess = reader.GetBoolean(6),
+							StageRewinding = reader.GetBoolean(7)
 						};
 					}
 				}
@@ -111,13 +114,15 @@ namespace SagaSQLServer.DB
 				SqlCommand cmd = new SqlCommand();
 				cmd.CommandType = System.Data.CommandType.Text;
 				cmd.CommandText = "UPDATE " + tableName + " SET stageName = @StageName, creationTimestamp = @CreationTimestamp," +
-					"completionTimestamp = @CompletionTimestamp,stageComplete = @StageComplete, stageSuccess = @StageSuccess " +
+					"completionTimestamp = @CompletionTimestamp,stageComplete = @StageComplete, stageSuccess = @StageSuccess, " +
+					"stageRewinding = @StageRewinding " +
 					"WHERE guid = @GUID AND orchestratorName = @OrchestratorName";
 				cmd.Parameters.Add("@StageName", System.Data.SqlDbType.VarChar);
 				cmd.Parameters.Add("@CreationTimestamp", System.Data.SqlDbType.DateTime2);
 				cmd.Parameters.Add("@CompletionTimestamp", System.Data.SqlDbType.DateTime2);
 				cmd.Parameters.Add("@StageComplete", System.Data.SqlDbType.Bit);
 				cmd.Parameters.Add("@StageSuccess", System.Data.SqlDbType.Bit);
+				cmd.Parameters.Add("@StageRewinding", System.Data.SqlDbType.Bit);
 				cmd.Parameters.Add("@GUID", System.Data.SqlDbType.VarChar);
 				cmd.Parameters.Add("@OrchestratorName", System.Data.SqlDbType.VarChar);
 
@@ -127,8 +132,9 @@ namespace SagaSQLServer.DB
 					cmd.Parameters["@CompletionTimestamp"].Value = DBNull.Value;
 				else
 					cmd.Parameters["@CompletionTimestamp"].Value = record.CompletionTimestamp;
-				cmd.Parameters["@StageComplete"].Value = record.StageComplete;
-				cmd.Parameters["@StageSuccess"].Value = record.StageSuccess;
+				cmd.Parameters["@StageComplete"].Value = record.StageComplete ? 1 : 0;
+				cmd.Parameters["@StageSuccess"].Value = record.StageSuccess ? 1 : 0;
+				cmd.Parameters["@StageRewinding"].Value = record.StageRewinding ? 1 : 0;
 				cmd.Parameters["@GUID"].Value = record.GUID;
 				cmd.Parameters["@OrchestratorName"].Value = record.OrchestratorName;
 
@@ -147,5 +153,6 @@ namespace SagaSQLServer.DB
 		public DateTime? CompletionTimestamp { get; set; }
 		public bool StageComplete { get; set; }
 		public bool StageSuccess { get; set; }
+		public bool StageRewinding { get; set; }
 	}
 }

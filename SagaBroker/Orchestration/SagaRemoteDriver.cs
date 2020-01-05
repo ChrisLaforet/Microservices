@@ -1,4 +1,5 @@
 ﻿using SagaBroker.Exception;
+using SagaBroker.Saga;
 using SagaProxy.Message;
 using SagaProxy.QueueManagement;
 using System;
@@ -6,10 +7,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
-namespace SagaBroker.Saga
+namespace SagaBroker.Orchestration
 {
-	public class SagaRemoteDriver
-	{
+	internal class SagaRemoteDriver : ISagaRemoteDriver
+		{
 		private readonly IQueueDriver queueDriver;
 		private readonly IDictionary<string, RequestResponse> pending = new ConcurrentDictionary<string, RequestResponse>();
 

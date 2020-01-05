@@ -7,5 +7,7 @@ namespace SagaBroker.StateMachine
 	public interface IOperationData
 	{
 		string SagaRecordGUID { get; set; }
+
+		IOperationData Clone();
 	}
 }

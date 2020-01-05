@@ -2,21 +2,32 @@
 using SagaBroker.StateMachine;
 using SagaProxy.DBManagement;
 using SagaProxy.QueueManagement;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace SagaBroker.Saga
+namespace SagaBroker.Orchestration
 {
 	public class SagaOrchestrator
 	{
-		private readonly IDictionary<string, SagaStage> transitionStates = new Dictionary<string, SagaStage>();
+		[Flags]
+		public enum RewindStrategy : int
+		{
+			ContinueOnError = 0,
+			FailOnError = 1,
+
+		};
+
+		private readonly IDictionary<string, ISagaStage> transitionStates = new Dictionary<string, ISagaStage>();
 		private bool isClosed = false;
 
-		public SagaOrchestrator(string orchestratorName, IQueueDriver queueDriver, IDBDriver dbDriver)
+		public SagaOrchestrator(string orchestratorName, IQueueDriver queueDriver, IDBDriver dbDriver, 
+			RewindStrategy rewindStrategyOptions = RewindStrategy.ContinueOnError)
 		{
 			Name = orchestratorName.ToUpper();
 			DBDriver = dbDriver;
 			RemoteQueueDriver = new SagaRemoteDriver(queueDriver);
+			RewindStrategyOptions = rewindStrategyOptions;
 		}
 
 		public string Name { protected set; get; }
@@ -25,7 +36,15 @@ namespace SagaBroker.Saga
 
 		internal IDBDriver DBDriver { private set; get; }
 
+		internal RewindStrategy RewindStrategyOptions { private set; get; }
+
 		internal ISagaStage FirstStage { set; get; }
+
+		public void Orchestrate(IOperationData operationData)
+		{
+			SagaStateMachine machine = new SagaStateMachine(this);
+			machine.Run(operationData);
+		}
 
 		public IList<ISagaStage> Transitions
 		{
@@ -35,12 +54,12 @@ namespace SagaBroker.Saga
 			}
 		}
 
-		public void AddStageToSource(SagaStage parent, SagaStage stage)
+		public void AddStageToSource(ISagaStage parent, ISagaStage stage)
 		{
 			AddStageToSource(parent?.Name, stage);
 		}
 
-		public void AddStageToSource(string parentStageName, SagaStage stage)
+		public void AddStageToSource(string parentStageName, ISagaStage stage)
 		{
 			if (isClosed)
 				throw new InvalidStageException("Attempt to add stage " + stage.Name + " to a closed orchestrator that has created state machines");
@@ -64,23 +83,22 @@ namespace SagaBroker.Saga
 				return;
 			}
 
-			SagaStage state = transitionStates[parentStageName];
+			ISagaStage state = transitionStates[parentStageName];
 			if (state == null)
 				throw new SagaTransitionException("Cannot locate parent state " + parentStageName + " for stage " + stage.Name);
 
-			state.AddTransition(stage);
+state.AddTransition(stage);
 			TrackTransitionStage(stage);
 		}
 
-		private void TrackTransitionStage(SagaStage stage)
+		internal ISagaStage GetStageByName(string stageName)
 		{
-			transitionStates.Add(stage.Name, stage);
+
 		}
 
-		public SagaStateMachine SagaStateMachine()
-		{
-			isClosed = true;
-			return new SagaStateMachine(this);
-		}
+private void TrackTransitionStage(ISagaStage stage)
+{
+	transitionStates.Add(stage.Name, stage);
+}
 	}
 }

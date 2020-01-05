@@ -13,5 +13,6 @@ namespace SagaProxy.DBManagement
 		DateTime? CompletionTimestamp { get; set; }
 		bool StageComplete { get; set; }
 		bool StageSuccess { get; set; }
+		bool StageRewinding { get; set; }
+		}
 	}
-}
