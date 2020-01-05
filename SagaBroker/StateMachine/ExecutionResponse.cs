@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SagaBroker.Broker
+namespace SagaBroker.StateMachine
 {
-	public abstract class BrokerData
+	public abstract class ExecutionResponse
 	{
 		public StepState State { get; set; }
 		public ISagaRecord SagaRecord { get; set; }

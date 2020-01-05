@@ -1,5 +1,4 @@
-﻿using SagaBroker.Broker;
-using SagaBroker.Exception;
+﻿using SagaBroker.Exception;
 using SagaBroker.StateMachine;
 using SagaProxy.DBManagement;
 using System;
@@ -26,7 +25,7 @@ namespace SagaBroker.Saga
 			return Guid.NewGuid().ToString();
 		}
 
-		public BrokerData.StepState ExecuteTransaction(SagaOperation operationData)
+		public ExecutionResponse.StepState ExecuteTransaction(SagaOperation operationData)
 		{
 			ISagaRecord sagaRecord = new StateMachineSagaRecord()
 			{
@@ -44,10 +43,10 @@ namespace SagaBroker.Saga
 				using (TransactionScope transaction = new TransactionScope())
 				{
 					var transData = currentStage.StateNode.ExecuteTransaction(operationData);
-					if (transData.State == BrokerData.StepState.STEP_EXIT)
+					if (transData.State == ExecutionResponse.StepState.STEP_EXIT)
 						return transData.State;
 
-					if (transData.State == BrokerData.StepState.STEP_FAILURE)
+					if (transData.State == ExecutionResponse.StepState.STEP_FAILURE)
 						throw new SagaException("Transaction failure in " + currentStage.Name);
 
 					IResponseData response = null;
@@ -63,10 +62,10 @@ namespace SagaBroker.Saga
 
 					var responseData = currentStage.StateNode.ProcessResponse(transData, response);
 
-					if (transData.State == BrokerData.StepState.STEP_EXIT)
+					if (transData.State == ExecutionResponse.StepState.STEP_EXIT)
 						return transData.State;
 
-					if (transData.State == BrokerData.StepState.STEP_FAILURE)
+					if (transData.State == ExecutionResponse.StepState.STEP_FAILURE)
 						throw new SagaException("Response failure in " + currentStage.Name);
 
 					currentStage = currentStage.GetTransitionByName(responseData.NextStep);
@@ -89,10 +88,10 @@ namespace SagaBroker.Saga
 			sagaRecord.StageSuccess = true;
 			orchestrator.DBDriver.UpdateSagaStep(sagaRecord);
 
-			return BrokerData.StepState.STEP_SUCCESS;
+			return ExecutionResponse.StepState.STEP_SUCCESS;
 		}
 
-		public BrokerData ExecuteCompensatingTransaction(CompensatingData compensatingData)
+		public ExecutionResponse ExecuteCompensatingTransaction(CompensatingData compensatingData)
 		{
 return currentStage.StateNode.ExecuteCompensatingTransaction(compensatingData);
 		}

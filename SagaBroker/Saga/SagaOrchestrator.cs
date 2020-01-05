@@ -9,10 +9,6 @@ namespace SagaBroker.Saga
 {
 	public class SagaOrchestrator
 	{
-
-
-		public delegate StepState SagaOperation(SagaRemoteDriver sageRemoteDriver);
-
 		private readonly IDictionary<string, SagaStage> transitionStates = new Dictionary<string, SagaStage>();
 		private bool isClosed = false;
 

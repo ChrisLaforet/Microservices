@@ -1,5 +1,4 @@
-﻿using SagaBroker.Broker;
-using SagaBroker.Exception;
+﻿using SagaBroker.Exception;
 using SagaBroker.StateMachine;
 using System.Collections.Generic;
 
@@ -9,21 +8,55 @@ namespace SagaBroker.Saga
 	{
 		private readonly IList<ISagaStage> transitions = new List<ISagaStage>();
 
-		public SagaStage(string name, BrokerStateNode brokerStateNode)
+		public SagaStage(string name, SagaOperation transaction, TransitionMap transactionTransitions, SagaOperation compensatingTransaction = null, TransitionMap compensatingTransactionTransitions)
 		{
 			Name = name.ToUpper();
-			BrokerStateNode = brokerStateNode;
+			Transaction = transaction;
+			TransactionTransitions = transactionTransitions;
+			CompensatingTransaction = compensatingTransaction;
+			CompensationTransactionTransitions = compensatingTransactionTransitions;
 		}
 
-		private BrokerStateNode BrokerStateNode { set; get; }
+		protected SagaOperation Transaction { private set; get; }
+		protected TransitionMap TransactionTransitions { private set; get; }
+		protected SagaOperation CompensatingTransaction { private set; get; }
+		protected TransitionMap CompensationTransactionTransitions { private set; get; }
+
 		public string Name { private set; get; }
 
-		public IStateNode StateNode
+		public virtual string ExecuteTransaction(SagaRemoteDriver sagaRemoteDriver, IOperationData operationData = null)
 		{
-			get
+			switch (Transaction(sagaRemoteDriver,operationData))
 			{
-				return BrokerStateNode;
+				case StepState.STEP_SUCCESS:
+					return TransactionTransitions.SuccessTransitionsTo;
+
+				case StepState.STEP_FAILURE:
+					return TransactionTransitions.FailureTransitionsTo;
+
+				case StepState.STEP_EXIT:
+					return TransactionTransitions.ExitTransitionsTo;
 			}
+			return null;
+		}
+
+		public virtual string ExecuteCompensatingTransaction(SagaRemoteDriver sagaRemoteDriver, IOperationData operationData = null)
+		{
+			if (CompensatingTransaction == null)
+				return string.Empty;
+
+			switch (CompensatingTransaction(sagaRemoteDriver,operationData))
+			{
+				case StepState.STEP_SUCCESS:
+					return CompensationTransactionTransitions.SuccessTransitionsTo;
+
+				case StepState.STEP_FAILURE:
+					return CompensationTransactionTransitions.FailureTransitionsTo;
+
+				case StepState.STEP_EXIT:
+					return CompensationTransactionTransitions.ExitTransitionsTo;
+			}
+			return null;
 		}
 
 		public void AddTransition(ISagaStage state)

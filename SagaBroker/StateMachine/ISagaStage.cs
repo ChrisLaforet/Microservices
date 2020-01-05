@@ -9,10 +9,11 @@ namespace SagaBroker.StateMachine
 	{
 		STEP_SUCCESS,
 		STEP_FAILURE,
-		STEP_EXIT
+		STEP_EXIT,
+		STEP_NODELEGATE
 	}
 
-	public delegate StepState SagaOperation(SagaRemoteDriver sageRemoteDriver);
+	public delegate StepState SagaOperation(SagaRemoteDriver sagaRemoteDriver,IOperationData operationData);
 
 	public interface ISagaStage
 	{
