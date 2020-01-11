@@ -14,7 +14,7 @@ namespace SagaBroker.Orchestration
 		internal SagaStateMachine(SagaOrchestrator orchestrator)
 		{
 			this.orchestrator = orchestrator;
-			currentStage = orchestrator.FirstStage;
+			currentStage = orchestrator.RootStage;
 		}
 
 		private readonly SagaOrchestrator orchestrator;
@@ -164,7 +164,7 @@ namespace SagaBroker.Orchestration
 			orchestrator.DBDriver.CreateSagaStep(sagaRecord);
 			operationData.SagaRecordGUID = sagaRecord.GUID;
 
-			StepState compensatingState = StepState.STEP_FAILURE;
+			StepState compensatingState;
 
 			try
 			{

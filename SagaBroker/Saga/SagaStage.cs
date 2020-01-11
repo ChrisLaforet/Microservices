@@ -42,7 +42,7 @@ namespace SagaBroker.Saga
 			if (CompensatingTransaction == null)
 				return StepState.STEP_NODELEGATE;
 
-			return CompensatingTransaction(sagaRemoteDriver,operationData));
+			return CompensatingTransaction(sagaRemoteDriver,operationData);
 		}
 	}
 }

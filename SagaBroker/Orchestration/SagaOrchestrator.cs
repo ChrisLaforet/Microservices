@@ -11,22 +11,23 @@ namespace SagaBroker.Orchestration
 	public class SagaOrchestrator
 	{
 		[Flags]
-		public enum RewindStrategy : int
+		public enum RewindStrategy
 		{
 			ContinueOnError = 0,
 			FailOnError = 1,
 
 		};
 
-		private readonly IDictionary<string, ISagaStage> transitionStates = new Dictionary<string, ISagaStage>();
+		private readonly IDictionary<string, ISagaStage> stageLookup = new Dictionary<string, ISagaStage>();
 		private bool isClosed = false;
 
 		public SagaOrchestrator(string orchestratorName, IQueueDriver queueDriver, IDBDriver dbDriver, 
-			RewindStrategy rewindStrategyOptions = RewindStrategy.ContinueOnError)
+			ISagaStage rootStage, RewindStrategy rewindStrategyOptions = RewindStrategy.ContinueOnError)
 		{
 			Name = orchestratorName.ToUpper();
 			DBDriver = dbDriver;
 			RemoteQueueDriver = new SagaRemoteDriver(queueDriver);
+			RootStage = rootStage;
 			RewindStrategyOptions = rewindStrategyOptions;
 		}
 
@@ -38,10 +39,11 @@ namespace SagaBroker.Orchestration
 
 		internal RewindStrategy RewindStrategyOptions { private set; get; }
 
-		internal ISagaStage FirstStage { set; get; }
+		internal ISagaStage RootStage { set; get; }
 
 		public void Orchestrate(IOperationData operationData)
 		{
+			isClosed = true;
 			SagaStateMachine machine = new SagaStateMachine(this);
 			machine.Run(operationData);
 		}
@@ -50,55 +52,25 @@ namespace SagaBroker.Orchestration
 		{
 			get
 			{
-				return transitionStates.Values.ToImmutableList<ISagaStage>();
+				return stageLookup.Values.ToImmutableList<ISagaStage>();
 			}
 		}
 
-		public void AddStageToSource(ISagaStage parent, ISagaStage stage)
-		{
-			AddStageToSource(parent?.Name, stage);
-		}
-
-		public void AddStageToSource(string parentStageName, ISagaStage stage)
+		public void InsertStage(ISagaStage stage)
 		{
 			if (isClosed)
 				throw new InvalidStageException("Attempt to add stage " + stage.Name + " to a closed orchestrator that has created state machines");
-
-			// determine there are no cyclic dependencies
-			foreach (var transition in Transitions)
-			{
-				if (transitionStates.Keys.Contains(transition.Name))
-					throw new CyclicDependencyException(transition.Name + " in " + stage.Name);
-			}
-
-			if (parentStageName != null && FirstStage == null)
-				throw new InvalidStageException("Attempt to add parented stage " + stage.Name + " without a first stage being defined");
-			else if (parentStageName == null && FirstStage != null)
-				throw new InvalidStageException("Attempt to add an additional first stage " + stage.Name + " when one is already defined");
-
-			if (parentStageName == null)
-			{
-				FirstStage = stage;
-				TrackTransitionStage(stage);
-				return;
-			}
-
-			ISagaStage state = transitionStates[parentStageName];
-			if (state == null)
-				throw new SagaTransitionException("Cannot locate parent state " + parentStageName + " for stage " + stage.Name);
-
-state.AddTransition(stage);
-			TrackTransitionStage(stage);
+			AddStageToLookup(stage);
 		}
 
 		internal ISagaStage GetStageByName(string stageName)
 		{
-
+			return stageLookup[stageName];
 		}
 
-private void TrackTransitionStage(ISagaStage stage)
-{
-	transitionStates.Add(stage.Name, stage);
-}
+		private void AddStageToLookup(ISagaStage stage)
+		{
+			stageLookup.Add(stage.Name, stage);
+		}
 	}
 }
