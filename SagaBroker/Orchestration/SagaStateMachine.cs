@@ -1,4 +1,5 @@
 ﻿using SagaBroker.Exception;
+using SagaBroker.Saga;
 using SagaBroker.StateMachine;
 using SagaProxy.DBManagement;
 using System;
@@ -11,13 +12,13 @@ namespace SagaBroker.Orchestration
 	{
 		private readonly Stack<RewindState> rewindStack = new Stack<RewindState>();
 
-		internal SagaStateMachine(SagaOrchestrator orchestrator)
+		public SagaStateMachine(ISagaOrchestrator orchestrator)
 		{
 			this.orchestrator = orchestrator;
 			currentStage = orchestrator.RootStage;
 		}
 
-		private readonly SagaOrchestrator orchestrator;
+		private readonly ISagaOrchestrator orchestrator;
 		private ISagaStage currentStage;
 
 		private string GenerateGUID()
@@ -68,14 +69,14 @@ namespace SagaBroker.Orchestration
 							return;
 
 						case StepState.STEP_FAILURE:
-							if ((orchestrator.RewindStrategyOptions & SagaOrchestrator.RewindStrategy.FailOnError) != 0)
+							if ((orchestrator.RewindStrategyOptions & RewindStrategy.FailOnError) != 0)
 								return;
 							break;
 					}
 				}
 				catch (System.Exception)
 				{
-					if ((orchestrator.RewindStrategyOptions & SagaOrchestrator.RewindStrategy.FailOnError) != 0)
+					if ((orchestrator.RewindStrategyOptions & RewindStrategy.FailOnError) != 0)
 						return;
 				}
 			}

@@ -8,9 +8,9 @@ namespace SagaBroker.StateMachine
 	{
 		public TransitionMap(string successTransitionsTo,string failureTransitionsTo,string exitTransitionsTo = null)
 		{
-			SuccessTransitionsTo = successTransitionsTo;
-			FailureTransitionsTo = failureTransitionsTo;
-			ExitTransitionsTo = exitTransitionsTo;
+			SuccessTransitionsTo = successTransitionsTo.ToUpper();
+			FailureTransitionsTo = failureTransitionsTo.ToUpper();
+			ExitTransitionsTo = exitTransitionsTo?.ToUpper();
 		}
 
 		public string SuccessTransitionsTo { private set; get; }

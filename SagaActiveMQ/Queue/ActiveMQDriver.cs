@@ -20,11 +20,11 @@ namespace SagaActiveMQ.Queue
 			this.defaultMessageTimeoutMS = defaultMessageTimeoutMS;
 		}
 
-		public IQueueMessage ReceiveMessage(IQueueMessage sentMessage)
+		public IQueueMessage ReceiveMessage(IQueueMessage messageWithReplyQueueName)
 		{
-			IQueueMessage response = ReceiveMessage(sentMessage.ReplyQueueName);
+			IQueueMessage response = ReceiveMessage(messageWithReplyQueueName.ReplyQueueName);
 			if (response != null)
-				response.RequestQueueName = sentMessage.RequestQueueName;
+				response.RequestQueueName = messageWithReplyQueueName.RequestQueueName;
 			return response;
 		}
 

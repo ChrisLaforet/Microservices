@@ -11,7 +11,6 @@ namespace SagaBroker.Orchestration
 {
 	internal class SagaRemoteDriver : ISagaRemoteDriver
 		{
-		private readonly IQueueDriver queueDriver;
 		private readonly IDictionary<string, RequestResponse> pending = new ConcurrentDictionary<string, RequestResponse>();
 
 		private readonly Thread monitorDriver;
@@ -20,11 +19,12 @@ namespace SagaBroker.Orchestration
 
 		internal SagaRemoteDriver(IQueueDriver driver)
 		{
-			queueDriver = driver;
+			QueueDriver = driver;
 			monitorDriver = new Thread(this.ResponseMonitor);
 			monitorDriver.IsBackground = true;
 			monitorDriver.Start();
 		}
+		public IQueueDriver QueueDriver { get; private set; }
 
 		private void ResponseMonitor()
 		{
@@ -44,7 +44,7 @@ namespace SagaBroker.Orchestration
 
 				foreach (var queue in responseQueues)
 				{
-					IQueueMessage response = queueDriver.ReceiveMessage(queue);
+					IQueueMessage response = QueueDriver.ReceiveMessage(queue);
 					if (response != null)
 					{
 						var node = pending[response.CorrelationID];
@@ -74,7 +74,7 @@ namespace SagaBroker.Orchestration
 
 		public string SendMessage(IQueueMessage message, int expirationMsec)
 		{
-			string correlationID = queueDriver.SendMessage(message);
+			string correlationID = QueueDriver.SendMessage(message);
 			pending.TryAdd(correlationID, new RequestResponse(message, expirationMsec));
 			return correlationID;
 		}

@@ -1,4 +1,5 @@
 ﻿using SagaBroker.Exception;
+using SagaBroker.Saga;
 using SagaBroker.StateMachine;
 using SagaProxy.DBManagement;
 using SagaProxy.QueueManagement;
@@ -8,16 +9,8 @@ using System.Collections.Immutable;
 
 namespace SagaBroker.Orchestration
 {
-	public class SagaOrchestrator
+	public class SagaOrchestrator : ISagaOrchestrator
 	{
-		[Flags]
-		public enum RewindStrategy
-		{
-			ContinueOnError = 0,
-			FailOnError = 1,
-
-		};
-
 		private readonly IDictionary<string, ISagaStage> stageLookup = new Dictionary<string, ISagaStage>();
 		private bool isClosed = false;
 
@@ -33,17 +26,20 @@ namespace SagaBroker.Orchestration
 
 		public string Name { protected set; get; }
 
-		internal SagaRemoteDriver RemoteQueueDriver { private set; get; }
+		public ISagaRemoteDriver RemoteQueueDriver { private set; get; }
 
-		internal IDBDriver DBDriver { private set; get; }
+		public IDBDriver DBDriver { private set; get; }
 
-		internal RewindStrategy RewindStrategyOptions { private set; get; }
+		public RewindStrategy RewindStrategyOptions { private set; get; }
 
-		internal ISagaStage RootStage { set; get; }
+		public ISagaStage RootStage { private set; get; }
 
 		public void Orchestrate(IOperationData operationData)
 		{
 			isClosed = true;
+
+			if (RootStage == null)
+				throw new SagaTransitionException("Attempt to orchestrate a workflow without a starting root stage");
 			SagaStateMachine machine = new SagaStateMachine(this);
 			machine.Run(operationData);
 		}
@@ -63,7 +59,7 @@ namespace SagaBroker.Orchestration
 			AddStageToLookup(stage);
 		}
 
-		internal ISagaStage GetStageByName(string stageName)
+		public ISagaStage GetStageByName(string stageName)
 		{
 			return stageLookup[stageName];
 		}
@@ -71,6 +67,8 @@ namespace SagaBroker.Orchestration
 		private void AddStageToLookup(ISagaStage stage)
 		{
 			stageLookup.Add(stage.Name, stage);
+			if (RootStage == null)
+				RootStage = stage;
 		}
 	}
 }

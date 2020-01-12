@@ -18,7 +18,14 @@ namespace SagaBroker.StateMachine
 	{
 		string Name { get; }
 
+		string TransactionTransitionOnSuccess { get; }
+
+		string TransactionTransitionOnFailure { get; }
+
+		string TransactionTransitionOnExit { get; }
+
 		string ExecuteTransaction(ISagaRemoteDriver sagaRemoteDriver,IOperationData operationData);
+
 		StepState ExecuteCompensatingTransaction(ISagaRemoteDriver sagaRemoteDriver,IOperationData operationData);
 	}
 }

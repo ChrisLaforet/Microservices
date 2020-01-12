@@ -21,18 +21,42 @@ namespace SagaBroker.Saga
 
 		public string Name { private set; get; }
 
+		public string TransactionTransitionOnSuccess
+		{
+			get
+			{
+				return TransactionTransitions.SuccessTransitionsTo;
+			}
+		}
+
+		public string TransactionTransitionOnFailure
+		{
+			get
+			{
+				return TransactionTransitions.FailureTransitionsTo;
+			}
+		}
+
+		public string TransactionTransitionOnExit
+		{
+			get
+			{
+				return TransactionTransitions.ExitTransitionsTo;
+			}
+		}
+
 		public virtual string ExecuteTransaction(ISagaRemoteDriver sagaRemoteDriver, IOperationData operationData = null)
 		{
 			switch (Transaction(sagaRemoteDriver,operationData))
 			{
 				case StepState.STEP_SUCCESS:
-					return TransactionTransitions.SuccessTransitionsTo;
+					return TransactionTransitionOnSuccess;
 
 				case StepState.STEP_FAILURE:
-					return TransactionTransitions.FailureTransitionsTo;
+					return TransactionTransitionOnFailure;
 
 				case StepState.STEP_EXIT:
-					return TransactionTransitions.ExitTransitionsTo;
+					return TransactionTransitionOnExit;
 			}
 			return null;
 		}
