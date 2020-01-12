@@ -34,6 +34,11 @@ namespace SagaBroker.Orchestration
 
 		public ISagaStage RootStage { private set; get; }
 
+		public void ValidateStages()
+		{
+			throw new System.NotImplementedException();
+		}
+
 		public void Orchestrate(IOperationData operationData)
 		{
 			isClosed = true;
@@ -61,12 +66,23 @@ namespace SagaBroker.Orchestration
 
 		public ISagaStage GetStageByName(string stageName)
 		{
-			return stageLookup[stageName];
+			stageName = stageName.ToUpper();
+			lock (stageLookup)
+			{
+				if (stageLookup.ContainsKey(stageName))
+					return stageLookup[stageName];
+			}
+			return null;
 		}
 
 		private void AddStageToLookup(ISagaStage stage)
 		{
-			stageLookup.Add(stage.Name, stage);
+			lock (stageLookup)
+			{
+				if (stageLookup.ContainsKey(stage.Name))
+					throw new CyclicDependencyException("Stage " + stage.Name + " already exists in this orchestrator");
+				stageLookup.Add(stage.Name, stage);
+			}
 			if (RootStage == null)
 				RootStage = stage;
 		}
