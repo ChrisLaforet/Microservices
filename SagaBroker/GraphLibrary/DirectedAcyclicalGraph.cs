@@ -5,23 +5,23 @@ using SagaBroker.Exception;
 
 namespace SagaBroker.GraphLibrary
 {
-	public class DirectedAcyclicalGraph
+	public class DirectedAcyclicalGraph<T>
 	{
-		private DAGNode root;
+		private DAGNode<T> root;
 		private int totalNodes = 0;
 
 		public DirectedAcyclicalGraph() { }
 
-		public void Add(string node)
+		public void Add(T node)
 		{
 			if (root != null)
 				throw new GraphRootAlreadyExistsException("Node " + node + " cannot be rooted");
 
-			root = new DAGNode(node);
+			root = new DAGNode<T>(node);
 			++totalNodes;
 		}
 
-		public void AddChild(string node, string parent)
+		public void AddChild(T node, T parent)
 		{
 			if (parent == null)
 			{
@@ -29,23 +29,23 @@ namespace SagaBroker.GraphLibrary
 				return;
 			}
 
-			DAGNode parentNode = FindNode(parent);
+			DAGNode<T> parentNode = FindNode(parent);
 			if (parentNode == null)
 				throw new GraphNodeMissingException("Cannot locate parent node " + parent);
-			parentNode.AddChild(new DAGNode(node));
+			parentNode.AddChild(new DAGNode<T>(node));
 			++totalNodes;
 		}
 
-		private DAGNode FindNode(string node)
+		private DAGNode<T> FindNode(T node)
 		{
 			return root.FindNode(node);
 		}
 
-		public bool Validate()
+		public void Validate()
 		{
 			if (root == null || Count == 1)
-				return true;
-			return root.Validate();
+				return;
+			root.Validate();
 		}
 
 		public bool IsEmpty
@@ -65,39 +65,51 @@ namespace SagaBroker.GraphLibrary
 		}
 	}
 
-	class DAGNode
+	class DAGNode<T>
 	{
-		public DAGNode(string name, List<DAGNode> children = null)
+		public DAGNode(T nodeValue, List<DAGNode<T>> children = null)
 		{
-			Name = name;
-			Children = children == null ? new List<DAGNode>() : children;
+			NodeValue = nodeValue;
+			Children = children == null ? new List<DAGNode<T>>() : children;
 		}
 
-		public string Name { get; private set; }
+		public T NodeValue { get; private set; }
 
-		public DAGNode FindNode(string name)
+		public DAGNode<T> FindNode(T searchValue)
 		{
-			if (this.Name.CompareTo(name) == 0)
+			if (this.NodeValue.Equals(searchValue))
 				return this;
 			foreach (var child in this.Children)
 			{
-				DAGNode node = child.FindNode(name);
+				DAGNode<T> node = child.FindNode(searchValue);
 				if (node != null)
 					return node;
 			}
 			return null;
 		}
 
-		public bool Validate()
+		private void Validate(Stack<T> pathStack)
 		{
-			// build lists - check for duplicate as building occurs
-			return true;
+			if (pathStack.Contains(this.NodeValue))
+				throw new CyclicDependencyException("Found a cyclic reference with " + pathStack.ToString());
+
+			pathStack.Push(this.NodeValue);
+			foreach (var child in this.Children)
+			{
+				child.Validate(pathStack);
+			}
+			pathStack.Pop();
+		}
+
+		public void Validate()
+		{
+			this.Validate(new Stack<T>());
 		}
 
 
-		public List<DAGNode> Children { get; private set; }
+		public List<DAGNode<T>> Children { get; private set; }
 
-		public void AddChild(DAGNode node)
+		public void AddChild(DAGNode<T> node)
 		{
 			Children.Add(node);
 		}

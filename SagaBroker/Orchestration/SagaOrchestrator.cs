@@ -1,4 +1,5 @@
 ﻿using SagaBroker.Exception;
+using SagaBroker.GraphLibrary;
 using SagaBroker.Saga;
 using SagaBroker.StateMachine;
 using SagaProxy.DBManagement;
@@ -36,7 +37,39 @@ namespace SagaBroker.Orchestration
 
 		public void ValidateStages()
 		{
-			throw new System.NotImplementedException();
+			if (RootStage == null)
+				throw new SagaTransitionException("Attempt to validate an orchestration workflow without a starting root stage");
+
+			DirectedAcyclicalGraph<string> graph = new DirectedAcyclicalGraph<string>();
+			BuildDAG(graph, RootStage);
+			graph.Validate();
+		}
+
+		private void BuildDAG(DirectedAcyclicalGraph<string> graph, ISagaStage node, string parent = null)
+		{
+			if (parent == null)
+				graph.Add(RootStage.Name);
+			else
+				graph.AddChild(node.Name, parent);
+
+			if (node.TransactionTransitionOnSuccess != null)
+			{
+				if (!stageLookup.ContainsKey(node.TransactionTransitionOnSuccess))
+					throw new GraphNodeMissingException("Missing success transaction stage " + node.TransactionTransitionOnSuccess + " called from " + node.Name);
+				BuildDAG(graph, stageLookup[node.TransactionTransitionOnSuccess], node.Name);
+			}
+			if (node.TransactionTransitionOnFailure != null)
+			{
+				if (!stageLookup.ContainsKey(node.TransactionTransitionOnFailure))
+					throw new GraphNodeMissingException("Missing failure transaction stage " + node.TransactionTransitionOnFailure + " called from " + node.Name);
+				BuildDAG(graph, stageLookup[node.TransactionTransitionOnFailure], node.Name);
+			}
+			if (node.TransactionTransitionOnExit != null)
+			{
+				if (!stageLookup.ContainsKey(node.TransactionTransitionOnExit))
+					throw new GraphNodeMissingException("Missing exit transaction stage " + node.TransactionTransitionOnExit + " called from " + node.Name);
+				BuildDAG(graph, stageLookup[node.TransactionTransitionOnExit], node.Name);
+			}
 		}
 
 		public void Orchestrate(IOperationData operationData)

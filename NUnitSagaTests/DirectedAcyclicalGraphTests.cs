@@ -12,7 +12,7 @@ namespace NUnitSagaTests
 		[Test]
 		public void WhenCreatingAGraph_WithoutNodes_ReturnsCountOf0AndIsEmpty()
 		{
-			DirectedAcyclicalGraph graph = new DirectedAcyclicalGraph();
+			DirectedAcyclicalGraph<string> graph = new DirectedAcyclicalGraph<string>();
 			Assert.IsTrue(graph.IsEmpty);
 			Assert.AreEqual(0, graph.Count);
 		}
@@ -20,7 +20,7 @@ namespace NUnitSagaTests
 		[Test]
 		public void WhenCreatingAGraph_With1Node_ReturnsCountOf1AndNotIsEmpty()
 		{
-			DirectedAcyclicalGraph graph = new DirectedAcyclicalGraph();
+			DirectedAcyclicalGraph<string> graph = new DirectedAcyclicalGraph<string>();
 			graph.Add("A");
 			Assert.IsFalse(graph.IsEmpty);
 			Assert.AreEqual(1, graph.Count);
@@ -29,7 +29,7 @@ namespace NUnitSagaTests
 		[Test]
 		public void WhenCreatingAGraph_With2RootNodes_ThrowsException()
 		{
-			DirectedAcyclicalGraph graph = new DirectedAcyclicalGraph();
+			DirectedAcyclicalGraph<string> graph = new DirectedAcyclicalGraph<string>();
 			graph.Add("A");
 			Assert.Throws<GraphRootAlreadyExistsException>(delegate { graph.Add("A"); });
 		}
@@ -37,7 +37,7 @@ namespace NUnitSagaTests
 		[Test]
 		public void WhenCreatingAGraph_With2RelatedNodes_ReturnsCountOf2()
 		{
-			DirectedAcyclicalGraph graph = new DirectedAcyclicalGraph();
+			DirectedAcyclicalGraph<string> graph = new DirectedAcyclicalGraph<string>();
 			graph.Add("A");
 			graph.AddChild("B", "A");
 			Assert.AreEqual(2, graph.Count);
@@ -46,7 +46,7 @@ namespace NUnitSagaTests
 		[Test]
 		public void WhenCreatingAGraph_With2UnrelatedNodes_ThrowsException()
 		{
-			DirectedAcyclicalGraph graph = new DirectedAcyclicalGraph();
+			DirectedAcyclicalGraph<string> graph = new DirectedAcyclicalGraph<string>();
 			graph.Add("A");
 			
 			Assert.Throws<GraphNodeMissingException>(delegate { graph.AddChild("B", "C"); });
@@ -55,7 +55,7 @@ namespace NUnitSagaTests
 		[Test]
 		public void WhenCreatingAGraph_With2NodesOffRoot_ReturnsCountOf3()
 		{
-			DirectedAcyclicalGraph graph = new DirectedAcyclicalGraph();
+			DirectedAcyclicalGraph<string> graph = new DirectedAcyclicalGraph<string>();
 			graph.Add("A");
 			graph.AddChild("B", "A");
 			graph.AddChild("C", "A");
@@ -63,9 +63,9 @@ namespace NUnitSagaTests
 		}
 
 		[Test]
-		public void WhenCreatingAGraph_WithNoCycle_ValidateReturnsTrue()
+		public void WhenCreatingAGraph_WithNoCycle_ValidateReturnsSuccessfully()
 		{
-			DirectedAcyclicalGraph graph = new DirectedAcyclicalGraph();
+			DirectedAcyclicalGraph<string> graph = new DirectedAcyclicalGraph<string>();
 			graph.Add("A");
 			graph.AddChild("B", "A");
 			graph.AddChild("C", "B");
@@ -75,7 +75,24 @@ namespace NUnitSagaTests
 			graph.AddChild("X", "A");
 			graph.AddChild("Y", "X");
 			graph.AddChild("Z", "Y");
-			Assert.IsTrue(graph.Validate());
+			graph.Validate();
+			Assert.Pass();
+		}
+
+		[Test]
+		public void WhenCreatingAGraph_WithCycle_ValidateThrowsException()
+		{
+			DirectedAcyclicalGraph<string> graph = new DirectedAcyclicalGraph<string>();
+			graph.Add("A");
+			graph.AddChild("B", "A");
+			graph.AddChild("C", "B");
+			graph.AddChild("D", "B");
+			graph.AddChild("E", "D");
+			graph.AddChild("B", "E");
+			graph.AddChild("X", "A");
+			graph.AddChild("Y", "X");
+			graph.AddChild("Z", "Y");
+			Assert.Throws<CyclicDependencyException>(delegate { graph.Validate(); });
 		}
 	}
 }

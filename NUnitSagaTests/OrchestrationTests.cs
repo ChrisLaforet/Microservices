@@ -103,6 +103,27 @@ namespace NUnitSagaTests
 			orchestrator.InsertStage(stage2);
 			Assert.AreEqual(2, orchestrator.Transitions.Count);
 		}
+
+		[Test]
+		public void WhenDefiningOrchestrator_AddingMultipleStagesWithTransitions_ValidateReturnsSuccess()
+		{
+			SagaOrchestrator orchestrator = new SagaOrchestrator(ORCHESTRATOR_NAME, null, null, null);
+			orchestrator.InsertStage(new SagaStage("A", StageTests.FakeSuccessfulSagaOperation, new TransitionMap("B", "C", "D")));
+			orchestrator.InsertStage(new SagaStage("B", StageTests.FakeSuccessfulSagaOperation, new TransitionMap("E", "F")));
+			orchestrator.InsertStage(new SagaStage("C", StageTests.FakeSuccessfulSagaOperation, new TransitionMap("G", "H")));
+			orchestrator.InsertStage(new SagaStage("D", StageTests.FakeSuccessfulSagaOperation, new TransitionMap(null, null)));
+			orchestrator.InsertStage(new SagaStage("E", StageTests.FakeSuccessfulSagaOperation, new TransitionMap("I", "J")));
+			orchestrator.InsertStage(new SagaStage("F", StageTests.FakeSuccessfulSagaOperation, new TransitionMap(null, null)));
+			orchestrator.InsertStage(new SagaStage("G", StageTests.FakeSuccessfulSagaOperation, new TransitionMap(null, null)));
+			orchestrator.InsertStage(new SagaStage("H", StageTests.FakeSuccessfulSagaOperation, new TransitionMap(null, null)));
+			orchestrator.InsertStage(new SagaStage("I", StageTests.FakeSuccessfulSagaOperation, new TransitionMap("K", "L")));
+			orchestrator.InsertStage(new SagaStage("J", StageTests.FakeSuccessfulSagaOperation, new TransitionMap(null, null)));
+			orchestrator.InsertStage(new SagaStage("K", StageTests.FakeSuccessfulSagaOperation, new TransitionMap(null, null)));
+			orchestrator.InsertStage(new SagaStage("L", StageTests.FakeSuccessfulSagaOperation, new TransitionMap(null, null)));
+
+			orchestrator.ValidateStages();
+			Assert.Pass();
+		}
 	}
 
 	class DummyQueueDriver : IQueueDriver
