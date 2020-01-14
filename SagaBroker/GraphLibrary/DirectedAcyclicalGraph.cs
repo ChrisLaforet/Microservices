@@ -70,7 +70,7 @@ namespace SagaBroker.GraphLibrary
 		public DAGNode(T nodeValue, List<DAGNode<T>> children = null)
 		{
 			NodeValue = nodeValue;
-			Children = children == null ? new List<DAGNode<T>>() : children;
+			Children = children ?? new List<DAGNode<T>>();
 		}
 
 		public T NodeValue { get; private set; }
