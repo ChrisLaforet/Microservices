@@ -43,7 +43,7 @@ namespace SagaBroker.Orchestration
 					throw;
 				}
 
-				if (transitionState.Length == 0)
+				if (transitionState == null || transitionState.Length == 0)
 					stage = null;
 				else
 				{

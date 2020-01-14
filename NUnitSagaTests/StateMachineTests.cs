@@ -20,12 +20,12 @@ namespace NUnitSagaTests
 			var queueDriver = Substitute.For<IQueueDriver>();
 			var sagaStage = Substitute.For<ISagaStage>();
 			sagaStage.Name.Returns("A");
-			sagaStage.TransactionTransitionOnSuccess.Returns(NULL_STRING);
+			sagaStage.TransactionTransitionOnSuccess.Returns(string.Empty);
 			sagaStage.TransactionTransitionOnFailure.Returns(NULL_STRING);
 			sagaStage.TransactionTransitionOnExit.Returns(NULL_STRING);
 
 			var operationData = Substitute.For<IOperationData>();
-			sagaStage.ExecuteTransaction(Substitute.For<ISagaRemoteDriver>(),operationData).ReturnsForAnyArgs(NULL_STRING);
+			sagaStage.ExecuteTransaction(Substitute.For<ISagaRemoteDriver>(),operationData).ReturnsForAnyArgs(string.Empty);
 
 			SagaOrchestrator orchestrator = new SagaOrchestrator(OrchestrationTests.ORCHESTRATOR_NAME, queueDriver, dbDriver, sagaStage);
 			orchestrator.Orchestrate(operationData);

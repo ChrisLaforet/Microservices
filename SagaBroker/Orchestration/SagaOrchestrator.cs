@@ -54,19 +54,22 @@ namespace SagaBroker.Orchestration
 			else
 				graph.AddChild(node.Name, parent);
 
-			if (node.TransactionTransitionOnSuccess != null)
+			if (node.TransactionTransitionOnSuccess != null &&
+				node.TransactionTransitionOnSuccess.Length != 0)
 			{
 				if (!stageLookup.ContainsKey(node.TransactionTransitionOnSuccess))
 					throw new GraphNodeMissingException("Missing success transaction stage " + node.TransactionTransitionOnSuccess + " called from " + node.Name);
 				BuildDAG(graph, stageLookup[node.TransactionTransitionOnSuccess], node.Name);
 			}
-			if (node.TransactionTransitionOnFailure != null)
+			if (node.TransactionTransitionOnFailure != null &&
+				node.TransactionTransitionOnFailure.Length != 0)
 			{
 				if (!stageLookup.ContainsKey(node.TransactionTransitionOnFailure))
 					throw new GraphNodeMissingException("Missing failure transaction stage " + node.TransactionTransitionOnFailure + " called from " + node.Name);
 				BuildDAG(graph, stageLookup[node.TransactionTransitionOnFailure], node.Name);
 			}
-			if (node.TransactionTransitionOnExit != null)
+			if (node.TransactionTransitionOnExit != null &&
+				node.TransactionTransitionOnExit.Length != 0)
 			{
 				if (!stageLookup.ContainsKey(node.TransactionTransitionOnExit))
 					throw new GraphNodeMissingException("Missing exit transaction stage " + node.TransactionTransitionOnExit + " called from " + node.Name);
