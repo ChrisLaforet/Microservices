@@ -11,7 +11,7 @@ namespace NUnitSagaTests
 {
 	public class OrchestrationTests
 	{
-		const string ORCHESTRATOR_NAME = "TestOrchestrator";
+		public const string ORCHESTRATOR_NAME = "TestOrchestrator";
 		public const string STAGE2_NAME = "TestStage2";
 		public const string STAGE3_NAME = "TestStage3";
 

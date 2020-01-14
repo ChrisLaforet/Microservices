@@ -43,6 +43,8 @@ namespace SagaBroker.Orchestration
 			DirectedAcyclicalGraph<string> graph = new DirectedAcyclicalGraph<string>();
 			BuildDAG(graph, RootStage);
 			graph.Validate();
+
+			isClosed = true;
 		}
 
 		private void BuildDAG(DirectedAcyclicalGraph<string> graph, ISagaStage node, string parent = null)
@@ -74,7 +76,8 @@ namespace SagaBroker.Orchestration
 
 		public void Orchestrate(IOperationData operationData)
 		{
-			isClosed = true;
+			if (!isClosed)
+				ValidateStages();
 
 			if (RootStage == null)
 				throw new SagaTransitionException("Attempt to orchestrate a workflow without a starting root stage");
