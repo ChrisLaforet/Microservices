@@ -88,11 +88,11 @@ namespace NUnitSagaTests
 			graph.AddChild("C", "B");
 			graph.AddChild("D", "B");
 			graph.AddChild("E", "D");
-			graph.AddChild("B", "E");
-			graph.AddChild("X", "A");
-			graph.AddChild("Y", "X");
-			graph.AddChild("Z", "Y");
-			Assert.Throws<CyclicDependencyException>(delegate { graph.Validate(); });
+			Assert.Throws<CyclicDependencyException>(delegate { graph.AddChild("B", "E"); });
+			//graph.AddChild("X", "A");
+			//graph.AddChild("Y", "X");
+			//graph.AddChild("Z", "Y");
+			//Assert.Throws<CyclicDependencyException>(delegate { graph.Validate(); });
 		}
 	}
 }
