@@ -21,24 +21,38 @@ namespace SagaBroker.GraphLibrary
 			++totalNodes;
 		}
 
-		public void AddChild(T node, T parent)
+		public void AddChild(T child, T parent)
 		{
 			if (parent == null)
 			{
-				Add(node);
+				Add(child);
 				return;
 			}
 
 			DAGNode<T> parentNode = FindNode(parent);
 			if (parentNode == null)
 				throw new GraphNodeMissingException("Cannot locate parent node " + parent);
-			parentNode.AddChild(new DAGNode<T>(node));
+
+			CheckChildIsNotItsOwnParent(parentNode, child);
+
+			parentNode.AddChild(new DAGNode<T>(child));
 			++totalNodes;
 		}
 
 		private DAGNode<T> FindNode(T node)
 		{
 			return root.FindNode(node);
+		}
+
+		private void CheckChildIsNotItsOwnParent(DAGNode<T> parentNode, T child)
+		{
+			var currentNode = parentNode;
+			while (currentNode != null)
+			{
+				if (currentNode.NodeValue.Equals(child))
+					throw new CyclicDependencyException("The node " + child + " is being inserted in line with itself");
+				currentNode = currentNode.ParentNode;
+			}
 		}
 
 		public void Validate()
@@ -71,9 +85,12 @@ namespace SagaBroker.GraphLibrary
 		{
 			NodeValue = nodeValue;
 			Children = children ?? new List<DAGNode<T>>();
+			foreach (var child in Children)
+				child.ParentNode = this;
 		}
 
 		public T NodeValue { get; private set; }
+		public DAGNode<T> ParentNode { get; private set; }
 
 		public DAGNode<T> FindNode(T searchValue)
 		{
@@ -111,6 +128,7 @@ namespace SagaBroker.GraphLibrary
 
 		public void AddChild(DAGNode<T> node)
 		{
+			node.ParentNode = this;
 			Children.Add(node);
 		}
 	}

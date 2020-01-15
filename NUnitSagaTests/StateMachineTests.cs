@@ -28,8 +28,64 @@ namespace NUnitSagaTests
 			sagaStage.ExecuteTransaction(Substitute.For<ISagaRemoteDriver>(),operationData).ReturnsForAnyArgs(string.Empty);
 
 			SagaOrchestrator orchestrator = new SagaOrchestrator(OrchestrationTests.ORCHESTRATOR_NAME, queueDriver, dbDriver, sagaStage);
-			orchestrator.Orchestrate(operationData);
-			Assert.Pass();
+			var metrics = orchestrator.Orchestrate(operationData);
+			Assert.AreEqual(1, metrics.Item1);
+		}
+
+		[Test]
+		public void WhenDefiningAnOrchestratorWithTwoStages_CallingRun_ReturnsSuccess()
+		{
+			var dbDriver = Substitute.For<IDBDriver>();
+			var queueDriver = Substitute.For<IQueueDriver>();
+
+			var sagaStageA = Substitute.For<ISagaStage>();
+			sagaStageA.Name.Returns("A");
+			sagaStageA.TransactionTransitionOnSuccess.Returns("B");
+			sagaStageA.TransactionTransitionOnFailure.Returns(NULL_STRING);
+			sagaStageA.TransactionTransitionOnExit.Returns(NULL_STRING);
+
+			var sagaStageB = Substitute.For<ISagaStage>();
+			sagaStageB.Name.Returns("B");
+			sagaStageB.TransactionTransitionOnSuccess.Returns(string.Empty);
+			sagaStageB.TransactionTransitionOnFailure.Returns(NULL_STRING);
+			sagaStageB.TransactionTransitionOnExit.Returns(NULL_STRING);
+
+			var operationData = Substitute.For<IOperationData>();
+			sagaStageA.ExecuteTransaction(Substitute.For<ISagaRemoteDriver>(), operationData).ReturnsForAnyArgs("B");
+			sagaStageB.ExecuteTransaction(Substitute.For<ISagaRemoteDriver>(), operationData).ReturnsForAnyArgs(string.Empty);
+
+			SagaOrchestrator orchestrator = new SagaOrchestrator(OrchestrationTests.ORCHESTRATOR_NAME, queueDriver, dbDriver, sagaStageA);
+			orchestrator.InsertStage(sagaStageB);
+			var metrics = orchestrator.Orchestrate(operationData);
+			Assert.AreEqual(2, metrics.Item1);
+		}
+
+		[Test]
+		public void WhenDefiningAnOrchestratorWithTwoStagesFailingOnSecond_CallingRun_ReturnsFailure()
+		{
+			var dbDriver = Substitute.For<IDBDriver>();
+			var queueDriver = Substitute.For<IQueueDriver>();
+
+			var sagaStageA = Substitute.For<ISagaStage>();
+			sagaStageA.Name.Returns("A");
+			sagaStageA.TransactionTransitionOnSuccess.Returns("B");
+			sagaStageA.TransactionTransitionOnFailure.Returns(NULL_STRING);
+			sagaStageA.TransactionTransitionOnExit.Returns(NULL_STRING);
+
+			var sagaStageB = Substitute.For<ISagaStage>();
+			sagaStageB.Name.Returns("B");
+			sagaStageB.TransactionTransitionOnSuccess.Returns(string.Empty);
+			sagaStageB.TransactionTransitionOnFailure.Returns(NULL_STRING);
+			sagaStageB.TransactionTransitionOnExit.Returns(NULL_STRING);
+
+			var operationData = Substitute.For<IOperationData>();
+			sagaStageA.ExecuteTransaction(Substitute.For<ISagaRemoteDriver>(), operationData).ReturnsForAnyArgs("B");
+//			sagaStageB.ExecuteTransaction(Substitute.For<ISagaRemoteDriver>(), operationData).Thro
+
+			SagaOrchestrator orchestrator = new SagaOrchestrator(OrchestrationTests.ORCHESTRATOR_NAME, queueDriver, dbDriver, sagaStageA);
+			orchestrator.InsertStage(sagaStageB);
+			var metrics = orchestrator.Orchestrate(operationData);
+			Assert.AreEqual(2, metrics.Item1);
 		}
 	}
 

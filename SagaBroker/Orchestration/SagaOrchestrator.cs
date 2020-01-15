@@ -77,7 +77,7 @@ namespace SagaBroker.Orchestration
 			}
 		}
 
-		public void Orchestrate(IOperationData operationData)
+		public Tuple<int, int> Orchestrate(IOperationData operationData)
 		{
 			if (!isClosed)
 				ValidateStages();
@@ -86,6 +86,7 @@ namespace SagaBroker.Orchestration
 				throw new SagaTransitionException("Attempt to orchestrate a workflow without a starting root stage");
 			SagaStateMachine machine = new SagaStateMachine(this);
 			machine.Run(operationData);
+			return new Tuple<int, int>(machine.StagesExecuted, machine.StagesRewound);
 		}
 
 		public IList<ISagaStage> Transitions

@@ -55,12 +55,22 @@ namespace NUnitSagaTests
 		}
 
 		[Test]
-		public void WhenDefininingBasicOrchestrator_AddingStageWithSameNameMultipleTimes_ThrowsException()
+		public void WhenDefininingBasicOrchestrator_AddingStageWithSameNameMultipleTimes_InsertThrowsException()
 		{
 			ISagaStage stage = new SagaStage(StageTests.STAGE_NAME, StageTests.FakeSuccessfulSagaOperation, StageTests.TestTransitionMap);
 			SagaOrchestrator orchestrator = new SagaOrchestrator(ORCHESTRATOR_NAME, null, null, null);
 			orchestrator.InsertStage(stage);
 			Assert.Throws<CyclicDependencyException>(delegate { orchestrator.InsertStage(stage); });
+		}
+
+		[Test]
+		public void WhenDefininingBasicOrchestrator_AddingStageThatReferencesItself_ValidationThrowsException()
+		{
+			TransitionMap transitionMap = new TransitionMap(StageTests.STAGE_NAME, null, null);
+			ISagaStage stage = new SagaStage(StageTests.STAGE_NAME, StageTests.FakeSuccessfulSagaOperation, transitionMap);
+			SagaOrchestrator orchestrator = new SagaOrchestrator(ORCHESTRATOR_NAME, null, null, null);
+			orchestrator.InsertStage(stage);
+			Assert.Throws<CyclicDependencyException>(delegate { orchestrator.ValidateStages(); });
 		}
 
 		[Test]

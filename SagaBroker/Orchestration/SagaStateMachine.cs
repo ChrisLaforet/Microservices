@@ -21,6 +21,10 @@ namespace SagaBroker.Orchestration
 		private readonly ISagaOrchestrator orchestrator;
 		private ISagaStage currentStage;
 
+		public int StagesExecuted { get; private set; } = 0;
+
+		public int StagesRewound { get; private set; } = 0;
+
 		private string GenerateGUID()
 		{
 			return Guid.NewGuid().ToString();
@@ -28,14 +32,13 @@ namespace SagaBroker.Orchestration
 
 		public void Run(IOperationData operationData)
 		{
-			ISagaStage stage = currentStage;
-			while (stage != null)
+			while (currentStage != null)
 			{
 				string transitionState;
 				try
 				{
 					transitionState = ExecuteTransaction(operationData);
-					rewindStack.Push(new RewindState(stage, operationData.Clone()));
+					rewindStack.Push(new RewindState(currentStage, operationData.Clone()));
 				}
 				catch (System.Exception)
 				{
@@ -44,11 +47,11 @@ namespace SagaBroker.Orchestration
 				}
 
 				if (transitionState == null || transitionState.Length == 0)
-					stage = null;
+					currentStage = null;
 				else
 				{
-					stage = orchestrator.GetStageByName(transitionState);
-					if (stage == null)
+					currentStage = orchestrator.GetStageByName(transitionState);
+					if (currentStage == null)
 						throw new SagaTransitionException("Unable to locate transition stage named " + transitionState);
 				}
 			}
@@ -56,13 +59,13 @@ namespace SagaBroker.Orchestration
 
 		private void Rewind()
 		{
-
 			while (rewindStack.Count > 0)
 			{
 				RewindState rewindState = rewindStack.Pop();
 				try
 				{
 					currentStage = rewindState.Stage;
+					++StagesRewound;
 					switch (ExecuteCompensatingTransaction(rewindState.OperationData))
 					{
 						case StepState.STEP_EXIT:
@@ -105,6 +108,7 @@ namespace SagaBroker.Orchestration
 				using (TransactionScope transaction = new TransactionScope())
 				{
 					transitionName = currentStage.ExecuteTransaction(orchestrator.RemoteQueueDriver, operationData);
+					++StagesExecuted;
 					if (transitionName == null)
 					{
 						throw new SagaException("Error encountered while processing step " + currentStage.Name);
