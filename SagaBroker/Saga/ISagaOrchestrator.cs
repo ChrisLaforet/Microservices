@@ -21,7 +21,7 @@ namespace SagaBroker.Saga
 
 		void InsertStage(ISagaStage stage);
 
-		Tuple<int, int> Orchestrate(IOperationData operationData);
+		int Orchestrate(IOperationData operationData);
 
 		ISagaRemoteDriver RemoteQueueDriver { get; }
 

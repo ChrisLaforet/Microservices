@@ -23,8 +23,6 @@ namespace SagaBroker.Orchestration
 
 		public int StagesExecuted { get; private set; } = 0;
 
-		public int StagesRewound { get; private set; } = 0;
-
 		private string GenerateGUID()
 		{
 			return Guid.NewGuid().ToString();
@@ -65,7 +63,6 @@ namespace SagaBroker.Orchestration
 				try
 				{
 					currentStage = rewindState.Stage;
-					++StagesRewound;
 					switch (ExecuteCompensatingTransaction(rewindState.OperationData))
 					{
 						case StepState.STEP_EXIT:
@@ -98,8 +95,8 @@ namespace SagaBroker.Orchestration
 				StageSuccess = false
 			};
 
-			orchestrator.DBDriver.CreateSagaStep(sagaRecord);
 			operationData.SagaRecordGUID = sagaRecord.GUID;
+			orchestrator.DBDriver.CreateSagaStep(sagaRecord);
 
 			string transitionName = string.Empty;
 
@@ -166,8 +163,8 @@ namespace SagaBroker.Orchestration
 				StageSuccess = false
 			};
 
-			orchestrator.DBDriver.CreateSagaStep(sagaRecord);
 			operationData.SagaRecordGUID = sagaRecord.GUID;
+			orchestrator.DBDriver.CreateSagaStep(sagaRecord);
 
 			StepState compensatingState;
 
